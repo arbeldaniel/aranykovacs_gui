@@ -167,7 +167,7 @@ public class Player {
         stealButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                actionPanel.setVisible(false);
+                nextPlayerPhase(actionPanel);
                 for (Virologist virologist : v.getField().getVirologists()) {
                     if (virologist != v) {
                         for (Unction effect : virologist.getEffects()) {
@@ -179,7 +179,7 @@ public class Player {
                         }
                     }
                 }
-                nextPlayerPhase(unctionPanel);
+
             }
         });
         freezeButton.addActionListener(new ActionListener() {
@@ -249,6 +249,7 @@ public class Player {
                 usedUnction.apply(v);
                 nextPlayerPhase(targetPanel);
                 updateUnctions();
+                updateEffects();
             }
         });
         targetButton.addActionListener(new ActionListener() {
@@ -349,6 +350,7 @@ public class Player {
                         break;
                     }
                 }
+                nextPlayerPhase(unctionPanel);
             }
         });
     }
@@ -391,7 +393,7 @@ public class Player {
                 actionPhase();
             else if (dancing) {
                 v.setField(v.getField().getNeighbours().get(new Random().nextInt(v.getField().getNeighbours().size())), fieldLabel);
-                actionPhase();
+                takePhase();
             } else {
                 for (int i = 0; i < neighbours; ++i)
                     stepButtonVisibility(i, true);
@@ -399,6 +401,9 @@ public class Player {
                     stepButtonVisibility(i, false);
             }
         }
+        updateEffects();
+        updateEquipments();
+        updateMaterial();
     }
 
     private boolean updateUnctions() {
@@ -490,6 +495,7 @@ public class Player {
     }
 
     private void actionPhase() {
+        stepPanel.setVisible(false);
         takePanel.setVisible(false);
         actionPanel.setVisible(true);
         makeButton.setVisible(true);
@@ -589,6 +595,7 @@ public class Player {
 
     private void whatPhase() {
         actionPanel.setVisible(false);
+        nextPanel.setVisible(false);
         whatPanel.setVisible(true);
     }
 
