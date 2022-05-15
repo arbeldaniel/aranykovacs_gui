@@ -166,9 +166,7 @@ public class Game extends JFrame {
         for (int i = 0; i < adjacencyList.size(); i++) {
             System.out.print(i + " -> { ");
 
-            ArrayList<Integer> list
-                    = adjacencyList.get(i);
-
+            ArrayList<Integer> list = adjacencyList.get(i);
             if (list.isEmpty())
                 System.out.print(" No adjacent vertices ");
             else {
@@ -246,20 +244,26 @@ public class Game extends JFrame {
         panel2.setVisible(true);
         menuPanel.add(panel2, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         removeButton = new JButton();
+        removeButton.setBackground(new Color(-16777216));
         Font removeButtonFont = this.$$$getFont$$$(null, Font.BOLD, -1, removeButton.getFont());
         if (removeButtonFont != null) removeButton.setFont(removeButtonFont);
+        removeButton.setForeground(new Color(-1));
         removeButton.setText("-");
         removeButton.setVisible(false);
         panel2.add(removeButton, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         playButton = new JButton();
+        playButton.setBackground(new Color(-16777216));
         Font playButtonFont = this.$$$getFont$$$(null, Font.BOLD, -1, playButton.getFont());
         if (playButtonFont != null) playButton.setFont(playButtonFont);
+        playButton.setForeground(new Color(-1));
         playButton.setText("play");
         playButton.setVisible(false);
         panel2.add(playButton, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         addButton = new JButton();
+        addButton.setBackground(new Color(-16777216));
         Font addButtonFont = this.$$$getFont$$$(null, Font.BOLD, -1, addButton.getFont());
         if (addButtonFont != null) addButton.setFont(addButtonFont);
+        addButton.setForeground(new Color(-1));
         addButton.setText("+");
         addButton.setVisible(true);
         panel2.add(addButton, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
@@ -269,6 +273,10 @@ public class Game extends JFrame {
         panel3.setOpaque(false);
         menuPanel.add(panel3, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         playerName = new JTextField();
+        playerName.setBackground(new Color(-16777216));
+        Font playerNameFont = this.$$$getFont$$$(null, Font.BOLD, -1, playerName.getFont());
+        if (playerNameFont != null) playerName.setFont(playerNameFont);
+        playerName.setForeground(new Color(-1));
         playerName.setText("player 1");
         panel3.add(playerName, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
     }

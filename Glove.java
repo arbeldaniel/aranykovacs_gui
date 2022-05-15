@@ -3,7 +3,7 @@ import java.util.Random;
 public class Glove extends Equipment{
     private int counter;
     public Glove() {
-        name = "name";
+        name = "glove";
         counter = 3;
     }
 

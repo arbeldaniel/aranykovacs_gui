@@ -79,6 +79,7 @@ public class Player {
     private JButton materialButton;
     private JButton equipmentButton;
     private JLabel messageLabel;
+    private JButton axeButton;
     private JLabel playerIcon;
 
     public JPanel getPanel() {
@@ -335,16 +336,69 @@ public class Player {
                 nextPlayerPhase(whatPanel);
             }
         });
+        axeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                for (Virologist virologist : v.getField().getVirologists()) {
+                    if (virologist != v) {
+                        virologist.setDead(true);
+                        for (Equipment equipment : v.getEquipments()) {
+                            if (equipment.getName().equals("axe"))
+                                v.removeEquipment(equipment);
+                        }
+                        break;
+                    }
+                }
+            }
+        });
     }
 
     public void panelReset() {
-        nextPanel.setVisible(false);
-        stepPanel.setVisible(true);
-        int neighbours = v.getField().getNeighbours().size();
-        for (int i = 0; i < neighbours; ++i)
-            stepButtonVisibility(i, true);
-        for (int i = neighbours; i < 5; ++i)
-            stepButtonVisibility(i, false);
+        if (v.getDead()) {
+            nextPlayerPhase(stepPanel);
+            messageLabel.setText("you're dead");
+        } else {
+            nextPanel.setVisible(false);
+            stepPanel.setVisible(true);
+            int neighbours = v.getField().getNeighbours().size();
+            boolean freeze = false, dancing = false, bear = false;
+            for (Unction effect : v.getEffects()) {
+                switch (effect.getName()) {
+                    case "freeze":
+                        freeze = true;
+                        int f = effect.getTime() - 1;
+                        if (f == 0)
+                            v.removeEffect(effect);
+                        else effect.setTime(f);
+                        break;
+                    case "dancing":
+                        dancing = true;
+                        int d = effect.getTime() - 1;
+                        if (d == 0)
+                            v.removeEffect(effect);
+                        else effect.setTime(d);
+                        break;
+                    case "bear":
+                        bear = true;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            if (bear)
+                bearPhase();
+            else if (freeze)
+                actionPhase();
+            else if (dancing) {
+                v.setField(v.getField().getNeighbours().get(new Random().nextInt(v.getField().getNeighbours().size())), fieldLabel);
+                actionPhase();
+            } else {
+                for (int i = 0; i < neighbours; ++i)
+                    stepButtonVisibility(i, true);
+                for (int i = neighbours; i < 5; ++i)
+                    stepButtonVisibility(i, false);
+            }
+        }
     }
 
     private boolean updateUnctions() {
@@ -355,6 +409,17 @@ public class Player {
             unctionLabel.setText(unctionLabel.getText() + " " + currentUnction.getName() + ",");
             ret = true;
         }
+        boolean axe = false;
+        for (Equipment equipment : v.getEquipments()) {
+            if (equipment.getName().equals("axe")) {
+                axe = true;
+                ret = true;
+            }
+        }
+        if (axe)
+            axeButton.setVisible(true);
+        else axeButton.setVisible(false);
+
         return ret;
     }
 
@@ -364,6 +429,17 @@ public class Player {
         ArrayList<Code> currentCodes = v.getCodes();
         for (Code currentCode : currentCodes) {
             codeLabel.setText(codeLabel.getText() + " " + currentCode.getCodeID() + ",");
+            ret = true;
+        }
+        return ret;
+    }
+
+    private boolean updateEffects() {
+        boolean ret = false;
+        effectLabel.setText("Effects:");
+        ArrayList<Unction> effects = v.getEffects();
+        for (Unction effect : effects) {
+            effectLabel.setText(effectLabel.getText() + " " + effect.getName() + ",");
             ret = true;
         }
         return ret;
@@ -416,7 +492,18 @@ public class Player {
     private void actionPhase() {
         takePanel.setVisible(false);
         actionPanel.setVisible(true);
-        makeButton.setVisible(updateCodes());
+        makeButton.setVisible(true);
+        for (Unction effect : v.getEffects()) {
+            if (effect.getName().equals("forget")) {
+                int f = effect.getTime() - 1;
+                if (f == 0)
+                    v.removeEffect(effect);
+                else effect.setTime(f);
+                makeButton.setVisible(false);
+            }
+        }
+        if (makeButton.isVisible())
+            makeButton.setVisible(updateCodes());
         useButton.setVisible(updateUnctions());
         updateMaterial();
         updateEquipments();
@@ -481,6 +568,14 @@ public class Player {
     }
 
     private void nextPlayerPhase(JPanel jp) {
+        for (Unction effect : v.getEffects()) {
+            if (effect.getName().equals("protection")) {
+                int p = effect.getTime() - 1;
+                if (p == 0)
+                    v.removeEffect(effect);
+                else effect.setTime(p);
+            }
+        }
         jp.setVisible(false);
         nextPanel.setVisible(true);
     }
@@ -495,6 +590,16 @@ public class Player {
     private void whatPhase() {
         actionPanel.setVisible(false);
         whatPanel.setVisible(true);
+    }
+
+    private void bearPhase() {
+        v.setField(v.getField().getNeighbours().get(new Random().nextInt(v.getField().getNeighbours().size())), fieldLabel);
+        for (Virologist virologist : v.getField().getVirologists()) {
+            if (virologist != v)
+                if (new Bear().apply(v, virologist))
+                    return;
+                else v.setDead(true);
+        }
     }
 
     /**
@@ -522,33 +627,51 @@ public class Player {
         stepPanel.setVisible(true);
         playerPanel.add(stepPanel, new GridConstraints(1, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         step0 = new JButton();
+        step0.setBackground(new Color(-16777216));
         Font step0Font = this.$$$getFont$$$(null, Font.BOLD, -1, step0.getFont());
         if (step0Font != null) step0.setFont(step0Font);
+        step0.setForeground(new Color(-1));
+        step0.setHideActionText(false);
         step0.setText("->");
         stepPanel.add(step0, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         step1 = new JButton();
+        step1.setBackground(new Color(-16777216));
         Font step1Font = this.$$$getFont$$$(null, Font.BOLD, -1, step1.getFont());
         if (step1Font != null) step1.setFont(step1Font);
+        step1.setForeground(new Color(-1));
+        step1.setHideActionText(false);
         step1.setText("->");
         stepPanel.add(step1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         step2 = new JButton();
+        step2.setBackground(new Color(-16777216));
         Font step2Font = this.$$$getFont$$$(null, Font.BOLD, -1, step2.getFont());
         if (step2Font != null) step2.setFont(step2Font);
+        step2.setForeground(new Color(-1));
+        step2.setHideActionText(false);
         step2.setText("->");
         stepPanel.add(step2, new GridConstraints(4, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         step3 = new JButton();
+        step3.setBackground(new Color(-16777216));
         Font step3Font = this.$$$getFont$$$(null, Font.BOLD, -1, step3.getFont());
         if (step3Font != null) step3.setFont(step3Font);
+        step3.setForeground(new Color(-1));
+        step3.setHideActionText(false);
         step3.setText("->");
         stepPanel.add(step3, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         step4 = new JButton();
+        step4.setBackground(new Color(-16777216));
         Font step4Font = this.$$$getFont$$$(null, Font.BOLD, -1, step4.getFont());
         if (step4Font != null) step4.setFont(step4Font);
+        step4.setForeground(new Color(-1));
+        step4.setHideActionText(false);
         step4.setText("->");
         stepPanel.add(step4, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         stayButton = new JButton();
+        stayButton.setBackground(new Color(-16777216));
         Font stayButtonFont = this.$$$getFont$$$(null, Font.BOLD, -1, stayButton.getFont());
         if (stayButtonFont != null) stayButton.setFont(stayButtonFont);
+        stayButton.setForeground(new Color(-1));
+        stayButton.setHideActionText(false);
         stayButton.setText("stay");
         stepPanel.add(stayButton, new GridConstraints(5, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         takePanel = new JPanel();
@@ -557,14 +680,18 @@ public class Player {
         takePanel.setVisible(false);
         playerPanel.add(takePanel, new GridConstraints(1, 3, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         takeButton = new JButton();
+        takeButton.setBackground(new Color(-16777216));
         Font takeButtonFont = this.$$$getFont$$$(null, Font.BOLD, -1, takeButton.getFont());
         if (takeButtonFont != null) takeButton.setFont(takeButtonFont);
+        takeButton.setForeground(new Color(-1));
         takeButton.setText("take");
         takeButton.setToolTipText("");
         takePanel.add(takeButton, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         doNothingButton = new JButton();
+        doNothingButton.setBackground(new Color(-16777216));
         Font doNothingButtonFont = this.$$$getFont$$$(null, Font.BOLD, -1, doNothingButton.getFont());
         if (doNothingButtonFont != null) doNothingButton.setFont(doNothingButtonFont);
+        doNothingButton.setForeground(new Color(-1));
         doNothingButton.setText("do nothing");
         takePanel.add(doNothingButton, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         fieldLabel = new JLabel();
@@ -579,63 +706,90 @@ public class Player {
         actionPanel.setVisible(false);
         playerPanel.add(actionPanel, new GridConstraints(1, 4, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         makeButton = new JButton();
+        makeButton.setBackground(new Color(-16777216));
         Font makeButtonFont = this.$$$getFont$$$(null, Font.BOLD, -1, makeButton.getFont());
         if (makeButtonFont != null) makeButton.setFont(makeButtonFont);
+        makeButton.setForeground(new Color(-1));
         makeButton.setText("make");
         actionPanel.add(makeButton, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         useButton = new JButton();
+        useButton.setBackground(new Color(-16777216));
         Font useButtonFont = this.$$$getFont$$$(null, Font.BOLD, -1, useButton.getFont());
         if (useButtonFont != null) useButton.setFont(useButtonFont);
+        useButton.setForeground(new Color(-1));
         useButton.setText("use");
         actionPanel.add(useButton, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         stealButton = new JButton();
+        stealButton.setBackground(new Color(-16777216));
         Font stealButtonFont = this.$$$getFont$$$(null, Font.BOLD, -1, stealButton.getFont());
         if (stealButtonFont != null) stealButton.setFont(stealButtonFont);
+        stealButton.setForeground(new Color(-1));
         stealButton.setText("steal");
         actionPanel.add(stealButton, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         skipTurnButton = new JButton();
+        skipTurnButton.setBackground(new Color(-16777216));
         Font skipTurnButtonFont = this.$$$getFont$$$(null, Font.BOLD, -1, skipTurnButton.getFont());
         if (skipTurnButtonFont != null) skipTurnButton.setFont(skipTurnButtonFont);
+        skipTurnButton.setForeground(new Color(-1));
         skipTurnButton.setText("skip turn");
         actionPanel.add(skipTurnButton, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         unctionPanel = new JPanel();
-        unctionPanel.setLayout(new GridLayoutManager(4, 1, new Insets(0, 0, 0, 0), -1, -1));
+        unctionPanel.setLayout(new GridLayoutManager(5, 1, new Insets(0, 0, 0, 0), -1, -1));
         unctionPanel.setOpaque(false);
-        unctionPanel.setVisible(false);
+        unctionPanel.setVisible(true);
         playerPanel.add(unctionPanel, new GridConstraints(1, 5, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         freezeButton = new JButton();
+        freezeButton.setBackground(new Color(-16777216));
         Font freezeButtonFont = this.$$$getFont$$$(null, Font.BOLD, -1, freezeButton.getFont());
         if (freezeButtonFont != null) freezeButton.setFont(freezeButtonFont);
+        freezeButton.setForeground(new Color(-1));
         freezeButton.setText("freeze");
         unctionPanel.add(freezeButton, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         protectionButton = new JButton();
+        protectionButton.setBackground(new Color(-16777216));
         Font protectionButtonFont = this.$$$getFont$$$(null, Font.BOLD, -1, protectionButton.getFont());
         if (protectionButtonFont != null) protectionButton.setFont(protectionButtonFont);
+        protectionButton.setForeground(new Color(-1));
         protectionButton.setText("protection");
         unctionPanel.add(protectionButton, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         forgetButton = new JButton();
+        forgetButton.setBackground(new Color(-16777216));
         Font forgetButtonFont = this.$$$getFont$$$(null, Font.BOLD, -1, forgetButton.getFont());
         if (forgetButtonFont != null) forgetButton.setFont(forgetButtonFont);
+        forgetButton.setForeground(new Color(-1));
         forgetButton.setText("forget");
         unctionPanel.add(forgetButton, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         dancingButton = new JButton();
+        dancingButton.setBackground(new Color(-16777216));
         Font dancingButtonFont = this.$$$getFont$$$(null, Font.BOLD, -1, dancingButton.getFont());
         if (dancingButtonFont != null) dancingButton.setFont(dancingButtonFont);
+        dancingButton.setForeground(new Color(-1));
         dancingButton.setText("dancing");
         unctionPanel.add(dancingButton, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        axeButton = new JButton();
+        axeButton.setBackground(new Color(-16777216));
+        Font axeButtonFont = this.$$$getFont$$$(null, Font.BOLD, -1, axeButton.getFont());
+        if (axeButtonFont != null) axeButton.setFont(axeButtonFont);
+        axeButton.setForeground(new Color(-1));
+        axeButton.setText("axe");
+        unctionPanel.add(axeButton, new GridConstraints(4, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         targetPanel = new JPanel();
         targetPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
         targetPanel.setOpaque(false);
         targetPanel.setVisible(false);
         playerPanel.add(targetPanel, new GridConstraints(1, 6, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         playerButton = new JButton();
+        playerButton.setBackground(new Color(-16777216));
         Font playerButtonFont = this.$$$getFont$$$(null, Font.BOLD, -1, playerButton.getFont());
         if (playerButtonFont != null) playerButton.setFont(playerButtonFont);
+        playerButton.setForeground(new Color(-1));
         playerButton.setText("myself");
         targetPanel.add(playerButton, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         targetButton = new JButton();
+        targetButton.setBackground(new Color(-16777216));
         Font targetButtonFont = this.$$$getFont$$$(null, Font.BOLD, -1, targetButton.getFont());
         if (targetButtonFont != null) targetButton.setFont(targetButtonFont);
+        targetButton.setForeground(new Color(-1));
         targetButton.setText("someone else");
         targetPanel.add(targetButton, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         inventoryPanel = new JPanel();
@@ -685,6 +839,8 @@ public class Player {
         winbuttonPanel.setVisible(false);
         playerPanel.add(winbuttonPanel, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         restartButton = new JButton();
+        restartButton.setBackground(new Color(-16777216));
+        restartButton.setForeground(new Color(-1));
         restartButton.setText("restart");
         winbuttonPanel.add(restartButton, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         winlabelPanel = new JPanel();
@@ -702,28 +858,35 @@ public class Player {
         nextPanel = new JPanel();
         nextPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
         nextPanel.setOpaque(false);
-        nextPanel.setVisible(true);
+        nextPanel.setVisible(false);
         playerPanel.add(nextPanel, new GridConstraints(1, 7, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         nextButton = new JButton();
+        nextButton.setBackground(new Color(-16777216));
+        nextButton.setForeground(new Color(-1));
         nextButton.setText("next player");
         nextPanel.add(nextButton, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         messageLabel = new JLabel();
         Font messageLabelFont = this.$$$getFont$$$(null, Font.BOLD, -1, messageLabel.getFont());
         if (messageLabelFont != null) messageLabel.setFont(messageLabelFont);
-        messageLabel.setText("");
+        messageLabel.setText("sample text lol xd");
+        messageLabel.setVisible(false);
         nextPanel.add(messageLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         whatPanel = new JPanel();
         whatPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
         whatPanel.setVisible(false);
         playerPanel.add(whatPanel, new GridConstraints(1, 8, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         materialButton = new JButton();
+        materialButton.setBackground(new Color(-16777216));
         Font materialButtonFont = this.$$$getFont$$$(null, Font.BOLD, -1, materialButton.getFont());
         if (materialButtonFont != null) materialButton.setFont(materialButtonFont);
+        materialButton.setForeground(new Color(-1));
         materialButton.setText("material");
         whatPanel.add(materialButton, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         equipmentButton = new JButton();
+        equipmentButton.setBackground(new Color(-16777216));
         Font equipmentButtonFont = this.$$$getFont$$$(null, Font.BOLD, -1, equipmentButton.getFont());
         if (equipmentButtonFont != null) equipmentButton.setFont(equipmentButtonFont);
+        equipmentButton.setForeground(new Color(-1));
         equipmentButton.setText("equipment");
         whatPanel.add(equipmentButton, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     }

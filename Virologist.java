@@ -8,6 +8,7 @@ public class Virologist {
     private Material material;
     private ArrayList<Code> codes;
     private ArrayList<Equipment> equipments;
+    private boolean dead;
 
     public Virologist() {
         material = new Material(5, 5);
@@ -15,6 +16,7 @@ public class Virologist {
         effects = new ArrayList<>();
         codes = new ArrayList<>();
         equipments = new ArrayList<>();
+        dead = false;
     }
     public void setField(Field f, JLabel jl) {
         f.remove(this);
@@ -22,6 +24,13 @@ public class Virologist {
         f.accept(this, jl);
     }
 
+    public void setDead(boolean b) {
+        dead = b;
+    }
+
+    public boolean getDead() {
+        return dead;
+    }
     public boolean takeStuff() {
         return field.takeStuff(this);
     }
@@ -134,5 +143,9 @@ public class Virologist {
             if(unctions.get(i).getName().equals(u.getName()))
                 unctions.remove(i);
         }
+    }
+
+    public void removeEffect(Unction u) {
+        effects.remove(u);
     }
 }
