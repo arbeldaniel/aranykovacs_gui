@@ -1,3 +1,6 @@
+/**
+ * Anyagot reprezentál, tárolja, hogy nukleotid vagy aminosav.
+ */
 public class Material {
     int aminoacid;
     int nucletoid;
@@ -26,8 +29,4 @@ public class Material {
     public void setAminoacid(int aminoacid) {
         this.aminoacid = aminoacid;
     }
-
-;
-
-
 }

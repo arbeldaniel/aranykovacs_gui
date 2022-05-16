@@ -1,5 +1,8 @@
 import java.util.Random;
 
+/**
+ * A birtokló virológus visszadobja a rákent ágenseket.
+ */
 public class Glove extends Equipment{
     private int counter;
     public Glove() {

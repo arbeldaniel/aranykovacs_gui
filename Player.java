@@ -15,26 +15,21 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Random;
 
+/**
+ * A felhasználó nem a Virologist osztálynak adja az utasításokat hanem a Playernek és a Player
+ * továbbítja azt a Virologistnak és a visszatérési értékek alapján állítja be a GUI-t.
+ */
 public class Player {
 
+    /**
+     * A játékos által irányított virológus.
+     */
     private Virologist v;
+
+    /**
+     * A játék controller.
+     */
     private Game game;
-
-    public JPanel getStepPanel() {
-        return stepPanel;
-    }
-
-    public JPanel getTakePanel() {
-        return takePanel;
-    }
-
-    public JPanel getActionPanel() {
-        return actionPanel;
-    }
-
-    public JPanel getUnctionPanel() {
-        return unctionPanel;
-    }
 
     private JPanel playerPanel;
     private JButton step0;
@@ -86,61 +81,115 @@ public class Player {
         return playerPanel;
     }
 
+    /**
+     * Flag, ami jelzi, hogy a játékos csinálni vagy használni
+     * próbál valamilyen ágenst.
+     */
     private boolean usingUnction;
+
+    /**
+     * A használt ágens.
+     */
     private Unction usedUnction;
 
+    /**
+     * A megbénított virológus, akitöl lopni lehet.
+     */
     private Virologist frozen;
 
+    /**
+     * Azok a mezők, ahol már járt
+     */
+    private ArrayList<Field> fields;
 
+
+    /**
+     * Konstruktor, a gombok logikája, így a játék logika
+     * nagy része is itt található.
+     *
+     * @param name -A játékos neve
+     * @param game -A controller
+     */
     public Player(String name, Game game) {
         v = new Virologist();
         this.game = game;
         usingUnction = false;
+        //IntelliJ Swing UI builder által inicializált GUI
         $$$setupUI$$$();
         winLabel.setText("Woohoo, " + name + " has won!");
         playerPanel.setBorder(BorderFactory.createTitledBorder(null, name, TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
         playerIcon = new JLabel(new ImageIcon("player.png"));
         playerButton.setText(name);
+        fields = new ArrayList<>();
+
+        //Az első léptető gomb
+        //Átvezet a következő lépésre és lépteti a pályán játékost
         step0.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 takePhase();
-                if (step0.isVisible())
+                if (step0.isVisible()) {
                     v.setField(v.getField().getNeighbours().get(0), fieldLabel);
+                    if (!fields.contains(v.getField().getNeighbours().get(0)))
+                        fields.add(v.getField().getNeighbours().get(0));
+                }
             }
         });
+        //A második léptető gomb
+        //Átvezet a következő lépésre és lépteti a pályán játékost
         step1.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 takePhase();
-                if (step1.isVisible())
+                if (step1.isVisible()) {
                     v.setField(v.getField().getNeighbours().get(1), fieldLabel);
+                    if (!fields.contains(v.getField().getNeighbours().get(1)))
+                        fields.add(v.getField().getNeighbours().get(1));
+                }
             }
         });
+        //A harmadik léptető gomb
+        //Átvezet a következő lépésre és lépteti a pályán játékost
         step2.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 takePhase();
-                if (step2.isVisible())
+                if (step2.isVisible()) {
                     v.setField(v.getField().getNeighbours().get(2), fieldLabel);
+                    if(!fields.contains(v.getField().getNeighbours().get(2)))
+                        fields.add(v.getField().getNeighbours().get(2));
+                }
             }
         });
+        //A negyedik léptető gomb
+        //Átvezet a következő lépésre és lépteti a pályán játékost
         step3.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 takePhase();
-                if (step3.isVisible())
+                if (step3.isVisible()) {
                     v.setField(v.getField().getNeighbours().get(3), fieldLabel);
+                    if(!fields.contains(v.getField().getNeighbours().get(3)))
+                        fields.add(v.getField().getNeighbours().get(3));
+                }
             }
         });
+        //Az ötödik léptető gomb
+        //Átvezet a következő lépésre és lépteti a pályán játékost
         step4.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 takePhase();
-                if (step4.isVisible())
+                if (step4.isVisible()) {
                     v.setField(v.getField().getNeighbours().get(4), fieldLabel);
+                    if(!fields.contains(v.getField().getNeighbours().get(4)))
+                        fields.add(v.getField().getNeighbours().get(4));
+                }
             }
         });
+        //Mezővel való interraktálás
+        //Ha egy játékos összegyűjtötte a nyeréshez szükséges
+        // mennyiségű kódot akkor nyert
         takeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -152,18 +201,23 @@ public class Player {
                     actionPhase();
             }
         });
+        //Készítés gomb
         makeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 makePhase();
             }
         });
+        //Használat gomb
         useButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 usePhase();
             }
         });
+        //Lopás gomb
+        //Ha a mezőn tartozkodik más játékos, aki le van bénulva,
+        //akkor lehet tőle lopni, egyébként nem csinál semmit
         stealButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -182,6 +236,8 @@ public class Player {
 
             }
         });
+        //Freeze gomb
+        //A freeze ágens használata/készítése
         freezeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -197,6 +253,8 @@ public class Player {
                 updateMaterial();
             }
         });
+        //Protection gomb
+        //A protection ágens használata/készítése
         protectionButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -212,6 +270,8 @@ public class Player {
                 updateMaterial();
             }
         });
+        //Dancing gomb
+        //A dancing ágens használata/készítése
         dancingButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -227,6 +287,8 @@ public class Player {
                 updateMaterial();
             }
         });
+        //Forget gomb
+        //A forget ágens használata/készítése
         forgetButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -242,6 +304,8 @@ public class Player {
                 updateMaterial();
             }
         });
+        //Player gomb
+        //Ágens használata során, a cél kijelölésére szolgál
         playerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -252,6 +316,8 @@ public class Player {
                 updateEffects();
             }
         });
+        //Target gomb
+        //Ágens használata során, a cél kijelölésére szolgál
         targetButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -273,12 +339,14 @@ public class Player {
                 updateUnctions();
             }
         });
+        //Kiadja  a controllernek, hogy indítsa újra a játékot
         restartButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 game.gameReset();
             }
         });
+        //A játékos nem lép semerre
         stayButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -286,24 +354,28 @@ public class Player {
             }
         });
         updateMaterial();
+        //A játékos nem interraktál a mezővel
         doNothingButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 actionPhase();
             }
         });
+        //A játékos nem végez akciót
         skipTurnButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 nextPlayerPhase(actionPanel);
             }
         });
+        //Következő játékos
         nextButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 game.nextPlayer();
             }
         });
+        //Sikeres lopás esetén lehet anyagot választani, ennek a logikája
         materialButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -326,6 +398,7 @@ public class Player {
                 nextPlayerPhase(whatPanel);
             }
         });
+        //Sikeres lopás esetén lehet felszerelést választani, ennek a logikája
         equipmentButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -337,6 +410,7 @@ public class Player {
                 nextPlayerPhase(whatPanel);
             }
         });
+        //Ha a mezőn tartózkodik virológus, azt megöli és kicsorbítja a baltát
         axeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -355,6 +429,12 @@ public class Player {
         });
     }
 
+    /**
+     * Kör eleji inicializáció
+     * Figyelembe veszi a mozgást érintő ágensek hatásait
+     * Csak annyi gombot jelenít meg, amennyi szomszédos mező van.
+     * Ahol már járt a játékos, annak a mezőnek a gombját szörkére változtatja.
+     */
     public void panelReset() {
         if (v.getDead()) {
             nextPlayerPhase(stepPanel);
@@ -395,8 +475,12 @@ public class Player {
                 v.setField(v.getField().getNeighbours().get(new Random().nextInt(v.getField().getNeighbours().size())), fieldLabel);
                 takePhase();
             } else {
-                for (int i = 0; i < neighbours; ++i)
+                for (int i = 0; i < neighbours; ++i) {
                     stepButtonVisibility(i, true);
+                    if (fields.contains(v.getField().getNeighbours().get(i)))
+                        stepButtonColor(i, Color.DARK_GRAY);
+                    else stepButtonColor(i, Color.BLACK);
+                }
                 for (int i = neighbours; i < 5; ++i)
                     stepButtonVisibility(i, false);
             }
@@ -406,6 +490,10 @@ public class Player {
         updateMaterial();
     }
 
+    /**
+     * Frissíti a játékosnál lévő ágensek listáját.
+     * @return  -Ha van nála ágens vagy balta, akkor true ->meg kell jeleníteni a use gombot
+     */
     private boolean updateUnctions() {
         boolean ret = false;
         unctionLabel.setText("Unctions:");
@@ -419,15 +507,18 @@ public class Player {
             if (equipment.getName().equals("axe")) {
                 axe = true;
                 ret = true;
+                break;
             }
         }
-        if (axe)
-            axeButton.setVisible(true);
-        else axeButton.setVisible(false);
+        axeButton.setVisible(axe);
 
         return ret;
     }
 
+    /**
+     * Frissíti a játékosnál lévő kódok listáját.
+     * @return  -Ha van nála kód, akkor true ->meg kell jeleníteni a make gombot
+     */
     private boolean updateCodes() {
         boolean ret = false;
         codeLabel.setText("Codes:");
@@ -439,17 +530,20 @@ public class Player {
         return ret;
     }
 
-    private boolean updateEffects() {
-        boolean ret = false;
+    /**
+     * Frissíti a játékoson lévő ágensek hatásainak listáját
+     */
+    private void updateEffects() {
         effectLabel.setText("Effects:");
         ArrayList<Unction> effects = v.getEffects();
         for (Unction effect : effects) {
             effectLabel.setText(effectLabel.getText() + " " + effect.getName() + ",");
-            ret = true;
         }
-        return ret;
     }
 
+    /**
+     * Frissíti a játékosnál lévő felszerelések listáját
+     */
     private void updateEquipments() {
         equipmentLabel.setText("Equipments:");
         ArrayList<Equipment> currentEquipments = v.getEquipments();
@@ -458,11 +552,19 @@ public class Player {
         }
     }
 
+    /**
+     * Frissíti a játékosnál lévő anyagok listáját
+     */
     private void updateMaterial() {
         aminoacidLabel.setText("Aminoacid: " + v.getMaterial().getAminoacid());
         nucleotidLabel.setText("Nucleotid: " + v.getMaterial().getNucletoid());
     }
 
+    /**
+     * Lépés gombok láthatóságát állítja
+     * @param x -Hanyadik gomb
+     * @param s -Láthatóság
+     */
     private void stepButtonVisibility(int x, boolean s) {
         switch (x) {
             case 0:
@@ -485,15 +587,53 @@ public class Player {
         }
     }
 
+    /**
+     * A lépés gombok színét állítja
+     * @param x -Hanyadik gomb
+     * @param bg    -szín
+     */
+    private void stepButtonColor(int x, Color bg) {
+        switch (x) {
+            case 0:
+                step0.setBackground(bg);
+                break;
+            case 1:
+                step1.setBackground(bg);
+                break;
+            case 2:
+                step2.setBackground(bg);
+                break;
+            case 3:
+                step3.setBackground(bg);
+                break;
+            case 4:
+                step4.setBackground(bg);
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * Mező állítása kívülről
+     * @param f -mező
+     */
     public void setField(Field f) {
         v.setField(f, fieldLabel);
     }
 
+    /**
+     * Mezővel való interraktálás fázisa
+     */
     private void takePhase() {
         stepPanel.setVisible(false);
         takePanel.setVisible(true);
     }
 
+    /**
+     * Akció fázis
+     * Figyelembe veszi az akciókra hatással lévő ágenseket.
+     */
     private void actionPhase() {
         stepPanel.setVisible(false);
         takePanel.setVisible(false);
@@ -515,7 +655,10 @@ public class Player {
         updateEquipments();
     }
 
-
+    /**
+     * Ágens előűllításának fázisa
+     * Csak azokat a gombokat jeleníti meg, amik genetikai kódját ismeri a játékos
+     */
     private void makePhase() {
         actionPanel.setVisible(false);
         unctionPanel.setVisible(true);
@@ -545,6 +688,10 @@ public class Player {
         usingUnction = false;
     }
 
+    /**
+     * Használat fázis
+     * Csak azokat a gombokat jeleníti meg, amilyen ágensekkel (vagy baltával) rendelkezik a játékos.
+     */
     private void usePhase() {
         actionPanel.setVisible(false);
         unctionPanel.setVisible(true);
@@ -573,6 +720,10 @@ public class Player {
         usingUnction = true;
     }
 
+    /**
+     * A kör lezárása, itt még egyszer megtekintheti a játékos a saját dolgait
+     * @param jp    -A fázis előtt hasznűlt JPanel
+     */
     private void nextPlayerPhase(JPanel jp) {
         for (Unction effect : v.getEffects()) {
             if (effect.getName().equals("protection")) {
@@ -586,6 +737,9 @@ public class Player {
         nextPanel.setVisible(true);
     }
 
+    /**
+     * Lopás fázis
+     */
     private void stealPhase() {
         actionPanel.setVisible(true);
         targetPanel.setVisible(false);
@@ -593,12 +747,18 @@ public class Player {
         useButton.setVisible(false);
     }
 
+    /**
+     * Lopás utáni fázis
+     */
     private void whatPhase() {
         actionPanel.setVisible(false);
         nextPanel.setVisible(false);
         whatPanel.setVisible(true);
     }
 
+    /**
+     * Medve fázis
+     */
     private void bearPhase() {
         v.setField(v.getField().getNeighbours().get(new Random().nextInt(v.getField().getNeighbours().size())), fieldLabel);
         for (Virologist virologist : v.getField().getVirologists()) {

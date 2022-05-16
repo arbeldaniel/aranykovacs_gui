@@ -1,6 +1,9 @@
 import javax.swing.*;
 import java.util.Random;
 
+/**
+ * Egyfajta mező, anyagot tárol.
+ */
 public class Storage extends Field{
     private Material m;
 

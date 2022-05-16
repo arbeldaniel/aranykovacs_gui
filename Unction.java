@@ -1,6 +1,10 @@
 import java.util.ArrayList;
 
-public class Unction {
+/**
+ * Ágenst reprezentál, tárolja a nevét és, hogy meddig lehet felhasználni vagy meddig
+ * hatásos. Absztrakt osztály.
+ */
+public abstract class Unction {
     protected String name;
     protected int timeCounter;
     private Material cost;

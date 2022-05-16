@@ -1,5 +1,8 @@
 import javax.swing.*;
 
+/**
+ * Egyfajta mező, genetikai kódokat átrolhat.
+ */
 public class Laboratory extends Field {
     private Code code;
 

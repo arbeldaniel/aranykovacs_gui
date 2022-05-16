@@ -1,14 +1,29 @@
 import java.io.UncheckedIOException;
 
-public class Equipment {
+/**
+ * Absztrakt osztály, mely védőfelszereléseket reprezentál. Tárolja a védőfelszerelés
+ * nevét.
+ */
+public abstract class Equipment {
+    /**
+     * A felszerelés neve
+     */
     protected String name;
 
+    /**
+     * Konstruktor
+     */
     public Equipment() {
     }
 
+    /**
+     * Getter
+     * @return  -név
+     */
     public String getName() {
         return name;
     }
+
     public boolean addMaterial(Material m) {
         return false;
     }
@@ -17,6 +32,10 @@ public class Equipment {
         return false;
     }
 
+    /**
+     * Getter
+     * @return  -null
+     */
     public Material getMaterial() {
         return null;
     }

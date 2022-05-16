@@ -1,5 +1,8 @@
 import javax.swing.*;
 
+/**
+ * Egyfajta mező, védőfelszereléseket tárol.
+ */
 public class Shelter extends Field{
     private Equipment e;
     public Shelter(Equipment e) {
