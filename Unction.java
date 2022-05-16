@@ -1,13 +1,13 @@
 import java.util.ArrayList;
 
 /**
- * Ágenst reprezentál, tárolja a nevét és, hogy meddig lehet felhasználni vagy meddig
- * hatásos. Absztrakt osztály.
+ * Agenst reprezental, tarolja a nevét es, hogy meddig lehet felhasznalni vagy meddig
+ * hatasos. Absztrakt osztaly.
  */
 public abstract class Unction {
     protected String name;
     protected int timeCounter;
-    private Material cost;
+    private final Material cost;
 
     public Unction() {
         timeCounter = 3;

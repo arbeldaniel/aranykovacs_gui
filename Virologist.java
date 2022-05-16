@@ -2,7 +2,7 @@ import javax.swing.*;
 import java.util.ArrayList;
 
 /**
- * A játékosok által irányítható karakterek. Tárolják az ágenseiket, anyagaikat,
+ * A jatekosok altal iranyitható karakterek. Taroljak az agenseiket, anyagaikat,
  */
 public class Virologist {
     /**
@@ -155,7 +155,7 @@ public class Virologist {
     }
 
     /**
-     * Ágens hatást ad a a virológusnak
+     * Agens hatast ad a virologusnak
      * @param u -ágens
      * @return  -sikeres volt-e
      */
@@ -213,7 +213,7 @@ public class Virologist {
     }
 
     /**
-     * Ágens elvétele
+     * Agens elvetele
      * @param u -ágens
      */
     public void removeUnction(Unction u) {
@@ -224,7 +224,7 @@ public class Virologist {
     }
 
     /**
-     * Ágens hatásáank elvétele
+     * Agens hatasaank elvetele
      * @param u -ágens
      */
     public void removeEffect(Unction u) {
