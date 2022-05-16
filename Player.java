@@ -661,7 +661,7 @@ public class Player {
     }
 
     /**
-     * Ágens előűllításának fázisa
+     * Agens előűllításának fázisa
      * Csak azokat a gombokat jeleníti meg, amik genetikai kódját ismeri a játékos
      */
     private void makePhase() {
